@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "scheduler.h"
 #include "utilities.h"
 
@@ -22,8 +23,9 @@ int IO_complete() {
     return (os_rand() % CHANCE_OF_IO_COMPLETE == 0);
 }
 
-Scheduler* create_scheduler(SchedulingAlgorithm algorithm) {
+Scheduler* create_scheduler(SchedulingAlgorithm algorithm, int num_processes) {
     Scheduler* scheduler = malloc(sizeof(Scheduler));
+    scheduler->all_processes = malloc(num_processes * sizeof(Process*));
     scheduler->algorithm = algorithm;
     scheduler->ready_queue = create_queue();
     scheduler->io_queue = create_queue();
@@ -38,6 +40,14 @@ Scheduler* create_scheduler(SchedulingAlgorithm algorithm) {
         }
     }
 
+    // Initialize statistics
+    scheduler->total_turnaround_time = 0;
+    scheduler->total_waiting_time = 0;
+    scheduler->total_response_time = 0;
+    scheduler->total_io_time = 0;
+    scheduler->longest_job_time = 0;
+    scheduler->shortest_job_time = INT_MAX;
+
     return scheduler;
 }
 
@@ -51,6 +61,7 @@ void destroy_scheduler(Scheduler* scheduler) {
         }
     }
     
+    free(scheduler->all_processes);
     free(scheduler);
 }
 
@@ -82,15 +93,14 @@ void schedule_process(Scheduler* scheduler) {
             scheduler->current_process = next_process;
         }
 
-        if (scheduler->current_process->start_time == -1) {
-            scheduler->current_process->start_time = scheduler->current_time;
-        }
+        update_process_stats(scheduler->current_process, scheduler->current_time);
     }
 }
 
 void handle_process_completion(Scheduler* scheduler) {
     Process* completed_process = scheduler->current_process;
-    completed_process->completion_time = scheduler->current_time;
+    update_process_stats(completed_process, scheduler->current_time);
+    update_scheduler_stats(scheduler, completed_process);
     scheduler->completed_processes++;
     scheduler->current_process = NULL;
     // Update statistics here
@@ -147,6 +157,8 @@ void handle_io_completion(Scheduler* scheduler) {
 }
 
 void add_new_process(Scheduler* scheduler, Process* process) {
+    scheduler->all_processes[scheduler->total_processes] = process;
+    scheduler->total_processes++;    
     if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
         // New processes always start in the highest priority queue
         enqueue(scheduler->priority_queues[0], process);
@@ -238,7 +250,46 @@ Process* select_next_process_mlfq(Scheduler* scheduler) {
 }
 
 void print_statistics(Scheduler* scheduler) {
-    // Implementation to print statistics as per the required format
-    // ...
+    printf("| Total time | Total time | Total time |\n");
+    printf("| Job# | in ready to run | in sleeping on | in system |\n");
+    printf("| | state | I/O state | |\n");
+    printf("|------|-----------------|----------------|----------|\n");
+
+    for (int i = 0; i < scheduler->total_processes; i++) {
+        Process* p = scheduler->all_processes[i];
+        int turnaround_time = p->completion_time - p->arrival_time;
+        printf("| pid%-2d | %-16d | %-14d | %-8d |\n",
+               p->pid,
+               p->ready_time,
+               p->io_time,
+               turnaround_time
+               );
+    }
+
+    printf("|------|-----------------|----------------|----------|\n");
+    printf("Total simulation run time: %d\n", scheduler->current_time);
+    printf("Total number of jobs: %d\n", scheduler->total_processes);
+    printf("Shortest job completion time: %d\n", scheduler->shortest_job_time);
+    printf("Longest job completion time: %d\n", scheduler->longest_job_time);
+    printf("Average job completion time: %.2f\n", 
+           (float)scheduler->total_turnaround_time / scheduler->total_processes);
+    printf("Average time in ready queue: %.2f\n", 
+           (float)scheduler->total_waiting_time / scheduler->total_processes);
+    printf("Average time sleeping on I/O: %.2f\n", 
+           (float)scheduler->total_io_time / scheduler->total_processes);
 }
 
+void update_scheduler_stats(Scheduler* scheduler, Process* completed_process) {
+    scheduler->total_turnaround_time += completed_process->turnaround_time;
+    scheduler->total_waiting_time += completed_process->waiting_time;
+    scheduler->total_response_time += completed_process->response_time;
+    scheduler->total_io_time += completed_process->io_time;
+    
+    if (completed_process->turnaround_time > scheduler->longest_job_time) {
+        scheduler->longest_job_time = completed_process->turnaround_time;
+    }
+    
+    if (completed_process->turnaround_time < scheduler->shortest_job_time) {
+        scheduler->shortest_job_time = completed_process->turnaround_time;
+    }
+}

@@ -19,16 +19,25 @@ typedef struct {
     queue_t* ready_queue;
     queue_t* io_queue;
     Process* current_process;
+    Process** all_processes;  // Array to store all processes
     int current_time;
     int total_processes;
     int completed_processes;
+
+    // System-wide statistics
+    int total_turnaround_time;
+    int total_waiting_time;
+    int total_response_time;
+    int total_io_time;
+    int longest_job_time;
+    int shortest_job_time;
     
     // For Multi-level Feedback Queue
     queue_t* priority_queues[NUM_PRIORITY_LEVELS];
     int boost_timer;  // Counter for MLFQ boost
 } Scheduler;
 
-Scheduler* create_scheduler(SchedulingAlgorithm algorithm);
+Scheduler* create_scheduler(SchedulingAlgorithm algorithm, int num_processes);
 void destroy_scheduler(Scheduler* scheduler);
 void schedule_process(Scheduler* scheduler);
 void handle_process_completion(Scheduler* scheduler);
@@ -43,5 +52,7 @@ Process* select_next_process_mlfq(Scheduler* scheduler);
 
 // Function to seed the random number generator
 void os_srand(unsigned int seed);
+
+void update_scheduler_stats(Scheduler* scheduler, Process* completed_process);
 
 #endif

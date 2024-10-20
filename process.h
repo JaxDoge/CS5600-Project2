@@ -9,6 +9,9 @@ typedef struct {
     int remaining_time;
     int start_time;
     int completion_time;
+    int turnaround_time;
+    int waiting_time;
+    int response_time;    
     int ready_time;
     int running_time;
     int io_time;
@@ -19,5 +22,6 @@ typedef struct {
 // Function prototypes
 Process* create_process(int pid, int arrival_time, int service_time, int priority);
 void destroy_process(Process* p);
+void update_process_stats(Process* p, int current_time);
 
 #endif

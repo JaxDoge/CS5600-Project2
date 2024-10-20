@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Scheduler* scheduler = create_scheduler(algorithm);
+    Scheduler* scheduler = create_scheduler(algorithm, num_processes);
     os_srand(1);  // Seed the random number generator
 
     int time_slice_remaining = TIME_SLICE;
@@ -37,9 +37,11 @@ int main(int argc, char* argv[]) {
     // Main simulation loop
     while (scheduler->completed_processes < num_processes) {
         // Add new arriving processes
+        int new_processes_added = 0;
         for (int i = 0; i < num_processes; i++) {
             if (processes[i]->arrival_time == scheduler->current_time) {
                 add_new_process(scheduler, processes[i]);
+                new_processes_added++;
             }
         }
 
@@ -51,6 +53,22 @@ int main(int argc, char* argv[]) {
             schedule_process(scheduler);
             time_slice_remaining = TIME_SLICE;
         }
+
+        // Update ready time for processes in ready queue
+        node_t* current = scheduler->ready_queue->front;
+        while (current != NULL) {
+            Process* p = (Process*)current->data;
+            p->ready_time++;
+            current = current->next;
+        }
+
+        // Update I/O time for processes in I/O queue
+        current = scheduler->io_queue->front;
+        while (current != NULL) {
+            Process* p = (Process*)current->data;
+            p->io_time++;
+            current = current->next;
+        }        
 
         // Run current process
         if (scheduler->current_process != NULL) {
@@ -80,18 +98,25 @@ int main(int argc, char* argv[]) {
                 }
                 scheduler->current_process = NULL;
             
-            // Check if the process has used its allotment time in MLFQ, even it is already in the lowest priority queue
+            // Rule 4: Check if the process has used its allotment time in MLFQ, even it is already in the lowest priority queue
             } else if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK && current->allotment_time_used >= TIME_SLICE) {
                 int next_priority = (current->priority_level + 1 < NUM_PRIORITY_LEVELS) ? current->priority_level + 1 : NUM_PRIORITY_LEVELS - 1;
                 current->priority_level = next_priority;
                 enqueue(scheduler->priority_queues[next_priority], current);
                 current->allotment_time_used = 0;
                 scheduler->current_process = NULL;
+
+            // If at least one new process has arrived, preempt the current process in PREEMPTIVE_SJF
+            } else if (scheduler->algorithm == PREEMPTIVE_SJF && new_processes_added > 0) {
+                scheduler->current_process = NULL;
             }
         }
 
         if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
             scheduler->boost_timer++;
+            if (scheduler->boost_timer >= MLFQ_BOOST_TIME) {
+                scheduler->current_process = NULL;
+            }
         }
 
         scheduler->current_time++;
