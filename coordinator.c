@@ -54,7 +54,28 @@ int main(int argc, char* argv[]) {
         }     
 
         // Handle I/O completions
-        handle_io_completion(scheduler);
+        int completed_io_count = handle_io_completion(scheduler);
+
+        // Preempt the current process situations
+        if (new_processes_added + completed_io_count > 0 && scheduler->current_process != NULL) { 
+            // If at least one new process has added to the ready queue, preempt the current process in PREEMPTIVE_SJF
+            if (scheduler->algorithm == PREEMPTIVE_SJF) {
+                enqueue(scheduler->ready_queue, scheduler->current_process);
+                scheduler->current_process = NULL;
+            }
+            // If at least one process has completed I/O, preempt the current process in MLFQ 
+            // if there is one process in a higher priority queue
+            if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
+                int higher_priority_queue_size = 0;
+                for (int i = scheduler->current_process->priority_level - 1; i >= 0; i--) {
+                    higher_priority_queue_size += scheduler->priority_queues[i]->size;
+                }
+                if (higher_priority_queue_size > 0) {
+                    enqueue(scheduler->ready_queue, scheduler->current_process);
+                    scheduler->current_process = NULL;
+                }
+            }
+        }
 
         // Schedule next process
         if (scheduler->current_process == NULL) {
@@ -73,6 +94,9 @@ int main(int argc, char* argv[]) {
         // Run current process
         if (scheduler->current_process != NULL) {
             Process* current = scheduler->current_process;
+
+            // Simulate the passage of time
+            scheduler->current_time++;            
             current->remaining_time--;
             current->running_time++;
             time_slice_remaining--;
@@ -105,12 +129,10 @@ int main(int argc, char* argv[]) {
                 enqueue(scheduler->priority_queues[next_priority], current);
                 current->allotment_time_used = 0;
                 scheduler->current_process = NULL;
-
-            // If at least one new process has arrived, preempt the current process in PREEMPTIVE_SJF
-            } else if (scheduler->algorithm == PREEMPTIVE_SJF && new_processes_added > 0) {
-                enqueue(scheduler->ready_queue, current);
-                scheduler->current_process = NULL;
-            }
+            } 
+        } else {
+            // If no process is currently running, simulate the passage of time
+            scheduler->current_time++;
         }
 
         if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
@@ -119,8 +141,6 @@ int main(int argc, char* argv[]) {
                 scheduler->current_process = NULL;
             }
         }
-
-        scheduler->current_time++;
     }
 
     // Print final statistics

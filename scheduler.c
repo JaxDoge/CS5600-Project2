@@ -4,8 +4,7 @@
 #include "scheduler.h"
 #include "utilities.h"
 
-#define CHANCE_OF_IO_REQUEST 10
-#define CHANCE_OF_IO_COMPLETE 4
+
 
 int os_rand() {
     return rand();
@@ -106,9 +105,9 @@ void handle_process_completion(Scheduler* scheduler) {
     // Update statistics here
 }
 
-void handle_io_completion(Scheduler* scheduler) {
+int handle_io_completion(Scheduler* scheduler) {
     if (is_empty(scheduler->io_queue)) {
-        return;
+        return 0;
     }
 
     queue_t* temp_queue = create_queue();
@@ -154,6 +153,8 @@ void handle_io_completion(Scheduler* scheduler) {
 
     destroy_queue(temp_queue);
     destroy_queue(completed_io);
+
+    return completed_count;
 }
 
 void add_new_process(Scheduler* scheduler, Process* process) {
@@ -219,12 +220,6 @@ Process* select_next_process_rr(Scheduler* scheduler) {
     }
 
     Process* next_process = dequeue(scheduler->ready_queue);
-    
-    // If the process has remaining time, it will be added back to the queue after its time slice
-    if (next_process->remaining_time > TIME_SLICE) {
-        next_process->remaining_time -= TIME_SLICE;
-        enqueue(scheduler->ready_queue, next_process);
-    }
 
     return next_process;
 }
@@ -277,12 +272,11 @@ void print_statistics(Scheduler* scheduler) {
 
     for (int i = 0; i < scheduler->total_processes; i++) {
         Process* p = scheduler->all_processes[i];
-        int turnaround_time = p->completion_time - p->arrival_time;
         printf("| pid%-2d | %-15d | %-14d | %-10d |\n",
                p->pid,
                p->ready_time,
                p->io_time,
-               turnaround_time
+               p->turnaround_time
                );
     }
 
@@ -293,6 +287,8 @@ void print_statistics(Scheduler* scheduler) {
     printf("Longest job completion time: %d\n", scheduler->longest_job_time);
     printf("Average job completion time: %.2f\n", 
            (float)scheduler->total_turnaround_time / scheduler->total_processes);
+    printf("Average job response time: %.2f\n", 
+           (float)scheduler->total_response_time / scheduler->total_processes);           
     printf("Average time in ready queue: %.2f\n", 
            (float)scheduler->total_waiting_time / scheduler->total_processes);
     printf("Average time sleeping on I/O: %.2f\n", 

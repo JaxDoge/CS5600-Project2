@@ -22,6 +22,7 @@ typedef struct {
 // Function prototypes
 Process* create_process(int pid, int arrival_time, int service_time, int priority);
 void destroy_process(Process* p);
+// Update process stats whenever a process is first scheduled or completed
 void update_process_stats(Process* p, int current_time);
 
 #endif
