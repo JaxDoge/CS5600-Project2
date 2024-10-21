@@ -45,6 +45,14 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // Update I/O time for processes in I/O queue
+        node_t* current_node = scheduler->io_queue->front;
+        while (current_node != NULL) {
+            Process* p = (Process*)current_node->data;
+            p->io_time++;
+            current_node = current_node->next;
+        }     
+
         // Handle I/O completions
         handle_io_completion(scheduler);
 
@@ -55,20 +63,12 @@ int main(int argc, char* argv[]) {
         }
 
         // Update ready time for processes in ready queue
-        node_t* current = scheduler->ready_queue->front;
-        while (current != NULL) {
-            Process* p = (Process*)current->data;
+        current_node = scheduler->ready_queue->front;
+        while (current_node != NULL) {
+            Process* p = (Process*)current_node->data;
             p->ready_time++;
-            current = current->next;
+            current_node = current_node->next;
         }
-
-        // Update I/O time for processes in I/O queue
-        current = scheduler->io_queue->front;
-        while (current != NULL) {
-            Process* p = (Process*)current->data;
-            p->io_time++;
-            current = current->next;
-        }        
 
         // Run current process
         if (scheduler->current_process != NULL) {
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
                 scheduler->current_process = NULL;
 
             // Check if the time slice has expired
-            } else if (time_slice_remaining == 0) {
+            } else if (time_slice_remaining == 0 && scheduler->algorithm != PREEMPTIVE_SJF) {
                 if (scheduler->algorithm == ROUND_ROBIN) {
                     enqueue(scheduler->ready_queue, current);
                 } else if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {

@@ -270,15 +270,15 @@ Process* select_next_process_mlfq(Scheduler* scheduler) {
 }
 
 void print_statistics(Scheduler* scheduler) {
-    printf("| Total time | Total time | Total time |\n");
-    printf("| Job# | in ready to run | in sleeping on | in system |\n");
-    printf("| | state | I/O state | |\n");
-    printf("|------|-----------------|----------------|----------|\n");
+    printf("|        | Total time      | Total time     | Total time |\n");
+    printf("|  Job#  | in ready to run | in sleeping on | in system  |\n");
+    printf("|        | state           | I/O state      |            |\n");
+    printf("|--------|-----------------|----------------|------------|\n");
 
     for (int i = 0; i < scheduler->total_processes; i++) {
         Process* p = scheduler->all_processes[i];
         int turnaround_time = p->completion_time - p->arrival_time;
-        printf("| pid%-2d | %-16d | %-14d | %-8d |\n",
+        printf("| pid%-2d | %-15d | %-14d | %-10d |\n",
                p->pid,
                p->ready_time,
                p->io_time,
@@ -286,7 +286,7 @@ void print_statistics(Scheduler* scheduler) {
                );
     }
 
-    printf("|------|-----------------|----------------|----------|\n");
+    printf("|--------|-----------------|----------------|------------|\n");
     printf("Total simulation run time: %d\n", scheduler->current_time);
     printf("Total number of jobs: %d\n", scheduler->total_processes);
     printf("Shortest job completion time: %d\n", scheduler->shortest_job_time);
