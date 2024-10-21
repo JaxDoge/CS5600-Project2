@@ -37,6 +37,8 @@ typedef struct {
     int boost_timer;  // Counter for MLFQ boost
 } Scheduler;
 
+int IO_request();
+
 Scheduler* create_scheduler(SchedulingAlgorithm algorithm, int num_processes);
 void destroy_scheduler(Scheduler* scheduler);
 void schedule_process(Scheduler* scheduler);
