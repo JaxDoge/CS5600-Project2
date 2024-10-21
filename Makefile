@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-TARGET = scheduler
-SRCS = main.c scheduler.c process.c input_parser.c utilities.c queue.c
+TARGET = coordinator
+SRCS = coordinator.c scheduler.c process.c input_parser.c utilities.c queue.c
 OBJS = $(SRCS:.c=.o)
 
 .PHONY: all clean
