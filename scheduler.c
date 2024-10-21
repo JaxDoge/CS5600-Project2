@@ -178,6 +178,8 @@ Process* select_next_process_sjf(Scheduler* scheduler) {
     node_t* shortest_node = current;
     node_t* shortest_prev = NULL;
 
+    // Find the shortest job in the ready queue
+    // If the remaining time is the same, then select the process with the smaller PID
     while (current != NULL) {
         Process* process = (Process*)current->data;
         Process* shortest_process = (Process*)shortest_node->data;
@@ -229,12 +231,30 @@ Process* select_next_process_rr(Scheduler* scheduler) {
 
 Process* select_next_process_mlfq(Scheduler* scheduler) {
     // Rule 5: Check if it's time to boost all processes
+    // Step 1: Move all processes to the temp process array
+    // Step 2: Sort the temp process array by PID
+    // Step 3: Enqueue the sorted processes back to the highest priority queue
     if (scheduler->boost_timer >= MLFQ_BOOST_TIME) {
+        int temp_process_count = 0;
+
+        for (int i = 0; i < NUM_PRIORITY_LEVELS; i++) {
+            temp_process_count += queue_size(scheduler->priority_queues[i]);
+        }
+
+        Process** temp_processes = malloc(temp_process_count * sizeof(Process*));
+        int temp_index = 0;
         for (int i = 1; i < NUM_PRIORITY_LEVELS; i++) {
             while (!is_empty(scheduler->priority_queues[i])) {
                 Process* process = dequeue(scheduler->priority_queues[i]);
-                enqueue(scheduler->priority_queues[0], process);
+                process->priority_level = 0;
+                process->allotment_time_used = 0;
+                temp_processes[temp_index++] = process;
             }
+        }
+
+        quicksort(temp_processes, 0, temp_process_count - 1);
+        for (int i = 0; i < temp_process_count; i++) {
+            enqueue(scheduler->priority_queues[0], temp_processes[i]);
         }
         scheduler->boost_timer = 0;
     }

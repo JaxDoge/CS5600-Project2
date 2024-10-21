@@ -1,20 +1,18 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
-TARGET = queue
+CFLAGS = -Wall -Wextra -g
+TARGET = scheduler
+SRCS = main.c scheduler.c process.c input_parser.c utilities.c queue.c
+OBJS = $(SRCS:.c=.o)
 
 .PHONY: all clean
 
 all: $(TARGET)
 
-queue: queue_main.o queue.o
-	$(CC) $(CFLAGS) -o queue queue_main.o queue.o
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-queue_main.o: queue_main.c queue.h
-	$(CC) $(CFLAGS) -c queue_main.c
-
-queue.o: queue.c queue.h
-	$(CC) $(CFLAGS) -c queue.c
-
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -f $(OBJS) $(TARGET)
