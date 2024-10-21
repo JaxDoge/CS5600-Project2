@@ -83,12 +83,24 @@ int main(int argc, char* argv[]) {
             time_slice_remaining = TIME_SLICE;
         }
 
-        // Update ready time for processes in ready queue
-        current_node = scheduler->ready_queue->front;
-        while (current_node != NULL) {
-            Process* p = (Process*)current_node->data;
-            p->ready_time++;
-            current_node = current_node->next;
+        // Update ready time for processes in ready queue.
+        if (scheduler->algorithm != MULTI_LEVEL_FEEDBACK) {
+            current_node = scheduler->ready_queue->front;
+            while (current_node != NULL) {
+                Process* p = (Process*)current_node->data;
+                p->ready_time++;
+                current_node = current_node->next;
+            }
+        } else {
+            // Update ready time for processes in MLFQ
+            for (int i = 0; i < NUM_PRIORITY_LEVELS; i++) {
+                current_node = scheduler->priority_queues[i]->front;
+                while (current_node != NULL) {
+                    Process* p = (Process*)current_node->data;
+                    p->ready_time++;
+                    current_node = current_node->next;
+                }
+            }
         }
 
         // Run current process
@@ -118,6 +130,7 @@ int main(int argc, char* argv[]) {
                 } else if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
                     int next_priority = (current->priority_level + 1 < NUM_PRIORITY_LEVELS) ? current->priority_level + 1 : NUM_PRIORITY_LEVELS - 1;
                     current->priority_level = next_priority;
+                    current->allotment_time_used = 0;
                     enqueue(scheduler->priority_queues[next_priority], current);
                 }
                 scheduler->current_process = NULL;
@@ -126,8 +139,8 @@ int main(int argc, char* argv[]) {
             } else if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK && current->allotment_time_used >= TIME_SLICE) {
                 int next_priority = (current->priority_level + 1 < NUM_PRIORITY_LEVELS) ? current->priority_level + 1 : NUM_PRIORITY_LEVELS - 1;
                 current->priority_level = next_priority;
-                enqueue(scheduler->priority_queues[next_priority], current);
                 current->allotment_time_used = 0;
+                enqueue(scheduler->priority_queues[next_priority], current);
                 scheduler->current_process = NULL;
             } 
         } else {
@@ -138,6 +151,9 @@ int main(int argc, char* argv[]) {
         if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
             scheduler->boost_timer++;
             if (scheduler->boost_timer >= MLFQ_BOOST_TIME) {
+                if (scheduler->current_process != NULL) {
+                    enqueue(scheduler->priority_queues[scheduler->current_process->priority_level], scheduler->current_process);
+                }
                 scheduler->current_process = NULL;
             }
         }

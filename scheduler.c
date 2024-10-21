@@ -24,7 +24,7 @@ int IO_complete() {
 
 Scheduler* create_scheduler(SchedulingAlgorithm algorithm, int num_processes) {
     Scheduler* scheduler = malloc(sizeof(Scheduler));
-    scheduler->all_processes = malloc(num_processes * sizeof(Process*));
+    scheduler->all_processes = malloc(num_processes * sizeof(Process*)); // For final statistics
     scheduler->algorithm = algorithm;
     scheduler->ready_queue = create_queue();
     scheduler->io_queue = create_queue();
@@ -33,6 +33,8 @@ Scheduler* create_scheduler(SchedulingAlgorithm algorithm, int num_processes) {
     scheduler->total_processes = 0;
     scheduler->completed_processes = 0;
 
+    // Initialize priority queues for MLFQ
+    scheduler->boost_timer = 0;
     if (algorithm == MULTI_LEVEL_FEEDBACK) {
         for (int i = 0; i < NUM_PRIORITY_LEVELS; i++) {
             scheduler->priority_queues[i] = create_queue();
@@ -236,20 +238,24 @@ Process* select_next_process_mlfq(Scheduler* scheduler) {
             temp_process_count += queue_size(scheduler->priority_queues[i]);
         }
 
-        Process** temp_processes = malloc(temp_process_count * sizeof(Process*));
-        int temp_index = 0;
-        for (int i = 1; i < NUM_PRIORITY_LEVELS; i++) {
-            while (!is_empty(scheduler->priority_queues[i])) {
-                Process* process = dequeue(scheduler->priority_queues[i]);
-                process->priority_level = 0;
-                process->allotment_time_used = 0;
-                temp_processes[temp_index++] = process;
+        if (temp_process_count > 0) {
+            Process** temp_processes = malloc(temp_process_count * sizeof(Process*));
+            int temp_index = 0;
+            for (int i = 1; i < NUM_PRIORITY_LEVELS; i++) {
+                while (!is_empty(scheduler->priority_queues[i])) {
+                    Process* process = dequeue(scheduler->priority_queues[i]);
+                    process->priority_level = 0;
+                    process->allotment_time_used = 0;
+                    temp_processes[temp_index++] = process;
+                }
             }
-        }
 
-        quicksort(temp_processes, 0, temp_process_count - 1);
-        for (int i = 0; i < temp_process_count; i++) {
-            enqueue(scheduler->priority_queues[0], temp_processes[i]);
+            quicksort(temp_processes, 0, temp_process_count - 1);
+            for (int i = 0; i < temp_process_count; i++) {
+                enqueue(scheduler->priority_queues[0], temp_processes[i]);
+            }
+
+            free(temp_processes);
         }
         scheduler->boost_timer = 0;
     }

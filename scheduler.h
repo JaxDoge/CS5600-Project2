@@ -7,7 +7,7 @@
 #define TIME_SLICE 4  // For Round Robin
 #define NUM_PRIORITY_LEVELS 3  // For Multi-level Feedback Queue
 #define MLFQ_BOOST_TIME 100  // Time period S for Rule 5
-#define CHANCE_OF_IO_REQUEST 982451653 // Chance of I/O request
+#define CHANCE_OF_IO_REQUEST 10 // Chance of I/O request
 #define CHANCE_OF_IO_COMPLETE 4 // Chance of I/O completion
 
 typedef enum {
