@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
 
             // If at least one new process has arrived, preempt the current process in PREEMPTIVE_SJF
             } else if (scheduler->algorithm == PREEMPTIVE_SJF && new_processes_added > 0) {
+                enqueue(scheduler->ready_queue, current);
                 scheduler->current_process = NULL;
             }
         }
