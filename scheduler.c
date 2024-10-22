@@ -241,7 +241,7 @@ Process* select_next_process_mlfq(Scheduler* scheduler) {
         if (temp_process_count > 0) {
             Process** temp_processes = malloc(temp_process_count * sizeof(Process*));
             int temp_index = 0;
-            for (int i = 1; i < NUM_PRIORITY_LEVELS; i++) {
+            for (int i = 0; i < NUM_PRIORITY_LEVELS; i++) {
                 while (!is_empty(scheduler->priority_queues[i])) {
                     Process* process = dequeue(scheduler->priority_queues[i]);
                     process->priority_level = 0;
@@ -250,8 +250,8 @@ Process* select_next_process_mlfq(Scheduler* scheduler) {
                 }
             }
 
-            quicksort(temp_processes, 0, temp_process_count - 1);
-            for (int i = 0; i < temp_process_count; i++) {
+            quicksort(temp_processes, 0, temp_index - 1);
+            for (int i = 0; i < temp_index; i++) {
                 enqueue(scheduler->priority_queues[0], temp_processes[i]);
             }
 
