@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include "scheduler.h"
 #include "utilities.h"
 
@@ -24,7 +26,7 @@ int IO_complete() {
 
 Scheduler* create_scheduler(SchedulingAlgorithm algorithm, int num_processes) {
     Scheduler* scheduler = malloc(sizeof(Scheduler));
-    scheduler->all_processes = malloc(num_processes * sizeof(Process*)); // For final statistics
+    scheduler->all_processes = malloc(num_processes * sizeof(Process*)); 
     scheduler->algorithm = algorithm;
     scheduler->ready_queue = create_queue();
     scheduler->io_queue = create_queue();
@@ -271,14 +273,31 @@ Process* select_next_process_mlfq(Scheduler* scheduler) {
 }
 
 void print_statistics(Scheduler* scheduler) {
-    printf("|        | Total time      | Total time     | Total time |\n");
-    printf("|  Job#  | in ready to run | in sleeping on | in system  |\n");
-    printf("|        | state           | I/O state      |            |\n");
-    printf("|--------|-----------------|----------------|------------|\n");
+    // Create output directory if it doesn't exist
+    struct stat st = {0};
+    if (stat("output", &st) == -1) {
+        if (mkdir("output", 0700) == -1) {
+            perror("Failed to create output directory");
+            return;
+        }
+    }
+
+    // Open the output file
+    FILE* file = fopen("output/statistics_output.txt", "w");
+    if (file == NULL) {
+        perror("Failed to open output file");
+        return;
+    }
+
+    // Write to file instead of printing to console
+    fprintf(file, "|        | Total time      | Total time     | Total time |\n");
+    fprintf(file, "|  Job#  | in ready to run | in sleeping on | in system  |\n");
+    fprintf(file, "|        | state           | I/O state      |            |\n");
+    fprintf(file, "|--------|-----------------|----------------|------------|\n");
 
     for (int i = 0; i < scheduler->total_processes; i++) {
         Process* p = scheduler->all_processes[i];
-        printf("| pid%-2d | %-15d | %-14d | %-10d |\n",
+        fprintf(file, "| pid%-2d | %-15d | %-14d | %-10d |\n",
                p->pid,
                p->ready_time,
                p->io_time,
@@ -286,19 +305,24 @@ void print_statistics(Scheduler* scheduler) {
                );
     }
 
-    printf("|--------|-----------------|----------------|------------|\n");
-    printf("Total simulation run time: %d\n", scheduler->current_time);
-    printf("Total number of jobs: %d\n", scheduler->total_processes);
-    printf("Shortest job completion time: %d\n", scheduler->shortest_job_time);
-    printf("Longest job completion time: %d\n", scheduler->longest_job_time);
-    printf("Average job completion time: %.2f\n", 
+    fprintf(file, "|--------|-----------------|----------------|------------|\n");
+    fprintf(file, "Total simulation run time: %d\n", scheduler->current_time);
+    fprintf(file, "Total number of jobs: %d\n", scheduler->total_processes);
+    fprintf(file, "Shortest job completion time: %d\n", scheduler->shortest_job_time);
+    fprintf(file, "Longest job completion time: %d\n", scheduler->longest_job_time);
+    fprintf(file, "Average job completion time: %.2f\n", 
            (float)scheduler->total_turnaround_time / scheduler->total_processes);
-    printf("Average job response time: %.2f\n", 
+    fprintf(file, "Average job response time: %.2f\n", 
            (float)scheduler->total_response_time / scheduler->total_processes);           
-    printf("Average time in ready queue: %.2f\n", 
+    fprintf(file, "Average time in ready queue: %.2f\n", 
            (float)scheduler->total_waiting_time / scheduler->total_processes);
-    printf("Average time sleeping on I/O: %.2f\n", 
+    fprintf(file, "Average time sleeping on I/O: %.2f\n", 
            (float)scheduler->total_io_time / scheduler->total_processes);
+
+    // Close the file
+    fclose(file);
+
+    printf("Statistics have been written to output/statistics.txt\n");
 }
 
 void update_scheduler_stats(Scheduler* scheduler, Process* completed_process) {

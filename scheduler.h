@@ -21,7 +21,7 @@ typedef struct {
     queue_t* ready_queue;
     queue_t* io_queue;
     Process* current_process;
-    Process** all_processes;  // Array to store all processes
+    Process** all_processes;  // Array to store all processes for final statistics
     int current_time;
     int total_processes;
     int completed_processes;
