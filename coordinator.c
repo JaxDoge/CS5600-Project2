@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
     // Main simulation loop
     while (scheduler->completed_processes < num_processes) {
+        int enter_io_flag = 0;
         // Add new arriving processes
         int new_processes_added = 0;
         for (int i = 0; i < num_processes; i++) {
@@ -44,14 +45,6 @@ int main(int argc, char* argv[]) {
                 new_processes_added++;
             }
         }
-
-        // Update I/O time for processes in I/O queue
-        node_t* current_node = scheduler->io_queue->front;
-        while (current_node != NULL) {
-            Process* p = (Process*)current_node->data;
-            p->io_time++;
-            current_node = current_node->next;
-        }     
 
         // Handle I/O completions
         int completed_io_count = handle_io_completion(scheduler);
@@ -71,7 +64,7 @@ int main(int argc, char* argv[]) {
                     higher_priority_queue_size += scheduler->priority_queues[i]->size;
                 }
                 if (higher_priority_queue_size > 0) {
-                    enqueue(scheduler->ready_queue, scheduler->current_process);
+                    enqueue(scheduler->priority_queues[scheduler->current_process->priority_level], scheduler->current_process);
                     scheduler->current_process = NULL;
                 }
             }
@@ -84,21 +77,22 @@ int main(int argc, char* argv[]) {
         }
 
         // Update ready time for processes in ready queue.
+        node_t* current_ready_node = NULL;
         if (scheduler->algorithm != MULTI_LEVEL_FEEDBACK) {
-            current_node = scheduler->ready_queue->front;
-            while (current_node != NULL) {
-                Process* p = (Process*)current_node->data;
+            current_ready_node = scheduler->ready_queue->front;
+            while (current_ready_node != NULL) {
+                Process* p = (Process*)current_ready_node->data;
                 p->ready_time++;
-                current_node = current_node->next;
+                current_ready_node = current_ready_node->next;
             }
         } else {
             // Update ready time for processes in MLFQ
             for (int i = 0; i < NUM_PRIORITY_LEVELS; i++) {
-                current_node = scheduler->priority_queues[i]->front;
-                while (current_node != NULL) {
-                    Process* p = (Process*)current_node->data;
+                current_ready_node = scheduler->priority_queues[i]->front;
+                while (current_ready_node != NULL) {
+                    Process* p = (Process*)current_ready_node->data;
                     p->ready_time++;
-                    current_node = current_node->next;
+                    current_ready_node = current_ready_node->next;
                 }
             }
         }
@@ -120,8 +114,7 @@ int main(int argc, char* argv[]) {
 
             // Check if the process has an I/O request
             } else if (IO_request()) {
-                enqueue(scheduler->io_queue, current);
-                scheduler->current_process = NULL;
+                enter_io_flag = 1;
 
             // Check if the time slice has expired
             } else if (time_slice_remaining == 0 && scheduler->algorithm != PREEMPTIVE_SJF) {
@@ -156,6 +149,19 @@ int main(int argc, char* argv[]) {
                 }
                 scheduler->current_process = NULL;
             }
+        }
+
+        // Update I/O time for processes in I/O queue
+        // If current   process enters I/O, enqueue it to the I/O queue
+        node_t* current_io_node = scheduler->io_queue->front;
+        while (current_io_node != NULL) {
+            Process* p = (Process*)current_io_node->data;
+            p->io_time++;
+            current_io_node = current_io_node->next;
+        }
+        if (enter_io_flag && scheduler->current_process != NULL) {
+            enqueue(scheduler->io_queue, scheduler->current_process);
+            scheduler->current_process = NULL;
         }
     }
 
