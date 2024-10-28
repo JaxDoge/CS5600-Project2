@@ -113,6 +113,8 @@ Average time in ready queue: 464.00
 Average time sleeping on I/O: 51.50
 ```
 
+The running result matched expectation because we can see the characteristics of RR scheduling algorithm. After the process arrived (after `pid300`), the processed exhibit a similar ready time and similar finish time.
+
 ## Multi-level Feedback Queue (MLFQ)
 
 ```
