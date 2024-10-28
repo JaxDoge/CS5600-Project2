@@ -1,0 +1,17 @@
+# .clang-format
+
+BasedOnStyle: LLVM
+PointerAlignment: Left  # Attach pointer to type, resulting in `int* p`
+SpaceAfterCStyleCast: true  # Add space after C-style casts
+AlignTrailingComments: true  # Align comments on the right side of code
+ColumnLimit: 9999  # Disable column limit
+
+# Optional: Customize brace formatting, indentation, etc.
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never  # Use spaces for indentation
+BreakBeforeBraces: Attach
+
+# Additional configuration for readability
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
