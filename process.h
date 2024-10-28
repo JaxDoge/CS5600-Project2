@@ -11,12 +11,12 @@ typedef struct {
     int completion_time;
     int turnaround_time;
     int waiting_time;
-    int response_time;    
+    int response_time;
     int ready_time;
     int running_time;
     int io_time;
-    int priority_level;  // Added priority level for MLFQ
-    int allotment_time_used;  // Added allotment usage for MLFQ
+    int priority_level;      // Added priority level for MLFQ
+    int allotment_time_used; // Added allotment usage for MLFQ
 } Process;
 
 // Function prototypes

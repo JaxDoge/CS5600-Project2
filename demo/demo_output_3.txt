@@ -1,0 +1,19 @@
+|        | Total time      | Total time     | Total time |
+|  Job#  | in ready to run | in sleeping on | in system  |
+|        | state           | I/O state      |            |
+|--------|-----------------|----------------|------------|
+| pid100 | 231             | 19             | 350        |
+| pid200 | 312             | 33             | 470        |
+| pid300 | 559             | 118            | 902        |
+| pid400 | 548             | 48             | 796        |
+| pid500 | 500             | 30             | 705        |
+| pid600 | 473             | 66             | 689        |
+|--------|-----------------|----------------|------------|
+Total simulation run time: 1002
+Total number of jobs: 6
+Shortest job completion time: 350
+Longest job completion time: 902
+Average job completion time: 652.00
+Average job response time: 4.33
+Average time in ready queue: 489.50
+Average time sleeping on I/O: 52.33
