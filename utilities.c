@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include "utilities.h"
+#include <stdlib.h>
 
 // Helper function to swap two Process pointers
 void swap(Process** a, Process** b) {

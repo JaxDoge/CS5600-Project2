@@ -4,24 +4,20 @@
 #include "process.h"
 #include "queue.h"
 
-#define TIME_SLICE 4  // For Round Robin
-#define NUM_PRIORITY_LEVELS 3  // For Multi-level Feedback Queue
-#define MLFQ_BOOST_TIME 100  // Time period S for Rule 5
+#define TIME_SLICE 4            // For Round Robin
+#define NUM_PRIORITY_LEVELS 3   // For Multi-level Feedback Queue
+#define MLFQ_BOOST_TIME 100     // Time period S for Rule 5
 #define CHANCE_OF_IO_REQUEST 10 // Chance of I/O request
 #define CHANCE_OF_IO_COMPLETE 4 // Chance of I/O completion
 
-typedef enum {
-    PREEMPTIVE_SJF,
-    ROUND_ROBIN,
-    MULTI_LEVEL_FEEDBACK
-} SchedulingAlgorithm;
+typedef enum { PREEMPTIVE_SJF, ROUND_ROBIN, MULTI_LEVEL_FEEDBACK } SchedulingAlgorithm;
 
 typedef struct {
     SchedulingAlgorithm algorithm;
     queue_t* ready_queue;
     queue_t* io_queue;
     Process* current_process;
-    Process** all_processes;  // Array to store all processes for final statistics
+    Process** all_processes; // Array to store all processes for final statistics
     int current_time;
     int total_processes;
     int completed_processes;
@@ -33,10 +29,10 @@ typedef struct {
     int total_io_time;
     int longest_job_time;
     int shortest_job_time;
-    
+
     // For Multi-level Feedback Queue
     queue_t* priority_queues[NUM_PRIORITY_LEVELS];
-    int boost_timer;  // Counter for MLFQ boost
+    int boost_timer; // Counter for MLFQ boost
 } Scheduler;
 
 int IO_request();

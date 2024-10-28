@@ -1,8 +1,8 @@
-#include <stdlib.h>
 #include "process.h"
+#include <stdlib.h>
 
 Process* create_process(int pid, int arrival_time, int service_time, int priority) {
-    Process* p = (Process*)malloc(sizeof(Process));
+    Process* p = (Process*) malloc(sizeof(Process));
     p->pid = pid;
     p->arrival_time = arrival_time;
     p->service_time = service_time;
@@ -12,7 +12,7 @@ Process* create_process(int pid, int arrival_time, int service_time, int priorit
     p->completion_time = -1;
     p->turnaround_time = 0;
     p->waiting_time = 0;
-    p->response_time = 0;    
+    p->response_time = 0;
     p->ready_time = 0;
     p->running_time = 0;
     p->io_time = 0;
@@ -30,7 +30,7 @@ void update_process_stats(Process* p, int current_time) {
         p->start_time = current_time;
         p->response_time = p->start_time - p->arrival_time;
     }
-    
+
     if (p->remaining_time == 0 && p->completion_time == -1) {
         p->completion_time = current_time;
         p->turnaround_time = p->completion_time - p->arrival_time;
