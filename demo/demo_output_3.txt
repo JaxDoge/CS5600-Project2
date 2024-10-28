@@ -1,0 +1,19 @@
+|        | Total time      | Total time     | Total time |
+|  Job#  | in ready to run | in sleeping on | in system  |
+|        | state           | I/O state      |            |
+|--------|-----------------|----------------|------------|
+| pid1  | 17              | 0              | 25         |
+| pid2  | 10              | 0              | 14         |
+| pid3  | 20              | 5              | 34         |
+| pid4  | 14              | 8              | 27         |
+| pid5  | 5               | 0              | 7          |
+| pid6  | 17              | 0              | 23         |
+|--------|-----------------|----------------|------------|
+Total simulation run time: 36
+Total number of jobs: 6
+Shortest job completion time: 7
+Longest job completion time: 34
+Average job completion time: 21.67
+Average job response time: 4.33
+Average time in ready queue: 16.00
+Average time sleeping on I/O: 2.17
