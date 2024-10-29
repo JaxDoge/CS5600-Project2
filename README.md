@@ -36,6 +36,11 @@ make clean
 ./coordinator <input-file> <scheduling-algorithm>
 ```
 
+Example:
+```bash
+./coordinator ./input/test_input.txt 1
+```
+
 Note that the `<input-file>` param must be provided when executing the program. 
 
 The `<scheduling-algorithm>` param is optional and can be one of the following:
