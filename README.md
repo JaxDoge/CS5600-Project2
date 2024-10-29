@@ -4,6 +4,17 @@
 
 # Usage Instructions
 
+## Hyper Parameters
+
+```c
+TIME_SLICE 4            // For Round Robin and MLFQ
+NUM_PRIORITY_LEVELS 3   // For Multi-level Feedback Queue number
+MLFQ_BOOST_TIME 100     // Boost time period for MLFQ Rule 5
+CHANCE_OF_IO_REQUEST 10 // Chance of I/O request, higher then less chance. Set to a big prime number to close I/O request
+CHANCE_OF_IO_COMPLETE 4 // Chance of I/O completion, higher then less chance
+OS_RAND_SEED 1          // Set random seed to 1
+```
+
 ## Compile
 
 To compile the project, run:
