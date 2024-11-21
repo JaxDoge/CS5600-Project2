@@ -8,9 +8,9 @@
 void step(Scheduler* scheduler, Process** processes, int num_processes) {
     int time_slice_remaining = TIME_SLICE;
 
-    int enter_io_flag = 0;
+    int enter_io_flag = 0; // If a process needs to enter I/O, set this to 1, then it will be enqueued to the I/O queue at the end of the step
     // Add new arriving processes
-    int new_processes_added = 0;
+    int new_processes_added = 0; // Number of new processes added to the ready queue
     for (int i = 0; i < num_processes; i++) {
         if (processes[i]->arrival_time == scheduler->current_time) {
             add_new_process(scheduler, processes[i]);
@@ -120,6 +120,8 @@ void step(Scheduler* scheduler, Process** processes, int num_processes) {
     if (scheduler->algorithm == MULTI_LEVEL_FEEDBACK) {
         // MLF-Rule 5: Check if the boost time has come, and boost all processes
         // in the lower priority queues to the highest priority queue
+        // The actual boost time is stored in the scheduler struct
+        // Here we increment the boost timer by 1 unit and push back the current process to the priority queue if it is not NULL
         scheduler->boost_timer++;
         if (scheduler->boost_timer >= MLFQ_BOOST_TIME) {
             if (scheduler->current_process != NULL) {

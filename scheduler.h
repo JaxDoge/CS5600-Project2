@@ -17,18 +17,18 @@ typedef struct {
     queue_t* ready_queue;
     queue_t* io_queue;
     Process* current_process;
-    Process** all_processes; // Array to store all processes for final statistics
-    int current_time;
-    int total_processes;
-    int completed_processes;
+    Process** all_processes; // Array to store all processes for final statistics. It should be a global variable
+    int current_time;        // It should be a global variable
+    int total_processes;     // It should be a global variable
+    int completed_processes; // It should be a global variable
 
     // System-wide statistics
-    int total_turnaround_time;
-    int total_waiting_time;
-    int total_response_time;
-    int total_io_time;
-    int longest_job_time;
-    int shortest_job_time;
+    int total_turnaround_time;  // It should be a global variable
+    int total_waiting_time;     // It should be a global variable
+    int total_response_time;    // It should be a global variable
+    int total_io_time;          // It should be a global variable
+    int longest_job_time;       // It should be a global variable
+    int shortest_job_time;      // It should be a global variable
 
     // For Multi-level Feedback Queue
     queue_t* priority_queues[NUM_PRIORITY_LEVELS];

@@ -83,8 +83,7 @@ void schedule_process(Scheduler* scheduler) {
 
     if (next_process != NULL) {
         if (scheduler->current_process != NULL && scheduler->algorithm == PREEMPTIVE_SJF) {
-            // If the new process has a shorter remaining time, preempt the
-            // current process
+            // This condition check is useless for now
             if (next_process->remaining_time < scheduler->current_process->remaining_time) {
                 enqueue(scheduler->ready_queue, scheduler->current_process);
                 scheduler->current_process = next_process;
